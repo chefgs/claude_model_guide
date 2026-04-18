@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="A complete reference and decision guide for Anthropic's Claude models, from Claude 1 to Claude Opus 4.7. Compare capabilities, pricing, context windows, and pick the right model for RAG, agents, and production deployment." />
+<meta name="robots" content="index, follow" />
+<title>Claude Models — The Practitioner's Guide (v1 → Opus 4.7)</title>
+<!-- Self-contained: no external CDNs, no third-party runtime scripts.
+     Fonts loaded from Google Fonts over HTTPS; a system-font fallback is defined. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,500&family=JetBrains+Mono:wght@400;500;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#0e0d0b;
+  --bg-2:#15130f;
+  --paper:#f3ece1;
+  --ink:#0a0a0a;
+  --rule:#2a2620;
+  --muted:#8b8578;
+  --accent:#ff5b22;   /* vermillion */
+  --accent-2:#e9d27a; /* oxidized gold */
+  --ok:#7fd08a;
+  --warn:#f0b95a;
+  --bad:#e26b5a;
+  --mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --serif:"Fraunces", "Iowan Old Style", Georgia, serif;
+  --sans:"Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--paper);font-family:var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(255,91,34,.08), transparent 60%),
+    radial-gradient(900px 500px at 10% 10%, rgba(233,210,122,.06), transparent 60%),
+    var(--bg);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+a{color:inherit}
+::selection{background:var(--accent);color:#0a0a0a}
+
+/* –– Grain overlay –– */
+body::before{
+content:””;
+position:fixed;inset:0;pointer-events:none;z-index:1;
+opacity:.06;mix-blend-mode:overlay;
+background-image:url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>”);
+}
+
+/* –– Layout –– */
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px;position:relative;z-index:2}
+
+/* –– Header –– */
+header.top{
+position:sticky;top:0;z-index:20;
+background:rgba(14,13,11,.85);
+backdrop-filter:blur(12px);
+border-bottom:1px solid var(–rule);
+}
+.top-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(–serif);font-weight:700;font-size:20px;letter-spacing:-.01em}
+.brand-mark{
+width:34px;height:34px;border-radius:6px;
+background:linear-gradient(135deg,var(–accent) 0%,#c23a10 100%);
+display:grid;place-items:center;color:#fff;font-family:var(–serif);font-weight:900;font-size:20px;
+box-shadow:inset 0 0 0 1px rgba(255,255,255,.15), 0 8px 24px rgba(255,91,34,.25);
+}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab-btn{
+background:transparent;color:var(–muted);border:1px solid transparent;
+font-family:var(–mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+padding:8px 12px;border-radius:999px;cursor:pointer;transition:.2s ease;
+}
+.tab-btn:hover{color:var(–paper);border-color:var(–rule)}
+.tab-btn.active{color:var(–ink);background:var(–accent-2);border-color:var(–accent-2)}
+
+/* –– Hero –– */
+.hero{padding:72px 0 40px;position:relative}
+.hero .eyebrow{font-family:var(–mono);color:var(–accent);font-size:12px;letter-spacing:.2em;text-transform:uppercase;margin-bottom:18px}
+.hero h1{
+font-family:var(–serif);font-weight:900;font-style:italic;
+font-size:clamp(44px, 8vw, 104px);line-height:.95;letter-spacing:-.03em;
+margin:0 0 20px;
+background:linear-gradient(180deg,var(–paper) 0%, #9a9488 100%);
+-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero h1 .accent{font-style:normal;color:var(–accent);background:none;-webkit-text-fill-color:var(–accent)}
+.hero p.lede{font-size:clamp(17px,1.6vw,20px);max-width:720px;color:#d9d1c2;line-height:1.55}
+.hero-meta{display:flex;gap:24px;margin-top:32px;flex-wrap:wrap;font-family:var(–mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(–muted)}
+.hero-meta span b{color:var(–accent-2);font-weight:500}
+
+/* –– Section chrome –– */
+section.panel{display:none;padding:28px 0 80px;animation:fadeup .4s ease both}
+section.panel.active{display:block}
+@keyframes fadeup{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+h2.section-h{font-family:var(–serif);font-weight:700;font-size:clamp(28px,3.5vw,44px);letter-spacing:-.02em;margin:8px 0 8px}
+p.section-sub{color:#b8b0a0;max-width:780px;margin:0 0 28px;line-height:1.6}
+
+/* –– Timeline –– */
+.tl{position:relative;margin-top:24px}
+.tl::before{content:””;position:absolute;left:18px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(–accent),var(–rule) 70%);}
+.tl-item{position:relative;padding:10px 0 28px 56px;margin-bottom:6px}
+.tl-item::before{
+content:””;position:absolute;left:12px;top:14px;width:14px;height:14px;border-radius:50%;
+background:var(–bg);border:2px solid var(–accent);
+box-shadow:0 0 0 4px rgba(255,91,34,.12);
+}
+.tl-item.minor::before{border-color:var(–muted);box-shadow:none}
+.tl-date{font-family:var(–mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(–accent-2)}
+.tl-item.minor .tl-date{color:var(–muted)}
+.tl-title{font-family:var(–serif);font-size:22px;font-weight:700;margin:4px 0 6px}
+.tl-body{color:#c9c1b2;line-height:1.6;max-width:720px}
+.tl-tag{display:inline-block;font-family:var(–mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border:1px solid var(–rule);border-radius:4px;margin-right:6px;color:var(–muted)}
+
+/* –– Compare table –– */
+.filters{
+display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px;
+padding:14px;border:1px solid var(–rule);border-radius:12px;background:rgba(255,255,255,.02);
+}
+.filters label{font-family:var(–mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(–muted);margin-right:4px}
+.filters select,.filters input[type=text]{
+background:var(–bg-2);color:var(–paper);border:1px solid var(–rule);border-radius:8px;
+padding:8px 10px;font-family:var(–mono);font-size:12px;outline:none;min-width:140px;
+}
+.filters select:focus,.filters input:focus{border-color:var(–accent)}
+.filters .chip{
+font-family:var(–mono);font-size:11px;padding:6px 10px;border-radius:999px;border:1px solid var(–rule);color:var(–muted);cursor:pointer;user-select:none;
+}
+.filters .chip.on{background:var(–accent);color:#0a0a0a;border-color:var(–accent)}
+.filters .spacer{flex:1}
+.filters .count{font-family:var(–mono);font-size:11px;color:var(–muted)}
+
+.tblwrap{overflow:auto;border:1px solid var(–rule);border-radius:12px}
+table.compare{width:100%;border-collapse:collapse;min-width:980px;font-size:14px}
+table.compare thead th{
+position:sticky;top:0;background:#1a1813;
+text-align:left;padding:12px 14px;font-family:var(–mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(–accent-2);
+border-bottom:1px solid var(–rule);cursor:pointer;white-space:nowrap;
+}
+table.compare thead th.sortable:hover{color:var(–paper)}
+table.compare thead th .sort{opacity:.4;margin-left:4px}
+table.compare thead th.sorted .sort{opacity:1;color:var(–accent)}
+table.compare tbody td{padding:12px 14px;border-bottom:1px solid var(–rule);vertical-align:top}
+table.compare tbody tr:hover{background:rgba(255,91,34,.04)}
+td.model-name{font-family:var(–serif);font-weight:700;font-size:16px;white-space:nowrap}
+td.model-name .sub{display:block;font-family:var(–mono);font-size:10px;color:var(–muted);font-weight:400;margin-top:2px}
+.badge{display:inline-block;font-family:var(–mono);font-size:10px;letter-spacing:.08em;padding:3px 7px;border-radius:4px;text-transform:uppercase}
+.badge.active{background:rgba(127,208,138,.15);color:var(–ok);border:1px solid rgba(127,208,138,.35)}
+.badge.legacy{background:rgba(240,185,90,.12);color:var(–warn);border:1px solid rgba(240,185,90,.3)}
+.badge.deprecated{background:rgba(226,107,90,.12);color:var(–bad);border:1px solid rgba(226,107,90,.3)}
+.badge.retired{background:rgba(139,133,120,.12);color:var(–muted);border:1px solid var(–rule)}
+.tier{font-family:var(–mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(–muted)}
+.tier.opus{color:var(–accent)}
+.tier.sonnet{color:var(–accent-2)}
+.tier.haiku{color:#9ad0e5}
+.tier.legacy{color:#b8b0a0}
+
+/* –– Cards –– */
+.grid{display:grid;gap:20px}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+@media (max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.card{
+border:1px solid var(–rule);border-radius:14px;padding:22px;background:linear-gradient(180deg,rgba(255,255,255,.02),transparent);
+position:relative;overflow:hidden;
+}
+.card h3{font-family:var(–serif);font-weight:700;font-size:22px;margin:0 0 8px;letter-spacing:-.01em}
+.card p{color:#c9c1b2;line-height:1.6;margin:0 0 12px}
+.card .k{font-family:var(–mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(–accent-2);margin-bottom:12px;display:block}
+.card ul{margin:6px 0 0;padding-left:18px;color:#d9d1c2;line-height:1.7}
+.card ul li{margin-bottom:4px}
+.card code{font-family:var(–mono);font-size:12px;background:var(–bg-2);padding:2px 6px;border-radius:4px;color:var(–accent-2);border:1px solid var(–rule)}
+
+/* –– Decision helper –– */
+.wizard{border:1px solid var(–rule);border-radius:16px;padding:28px;background:linear-gradient(180deg,rgba(233,210,122,.04),transparent)}
+.q{margin-bottom:22px}
+.q-label{font-family:var(–mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(–muted);margin-bottom:10px;display:block}
+.q-opts{display:flex;flex-wrap:wrap;gap:8px}
+.q-opt{
+background:var(–bg-2);border:1px solid var(–rule);border-radius:10px;padding:10px 14px;cursor:pointer;
+font-size:14px;color:var(–paper);transition:.15s ease;
+}
+.q-opt:hover{border-color:var(–accent-2)}
+.q-opt.sel{background:var(–accent);color:#0a0a0a;border-color:var(–accent);font-weight:600}
+.result{
+margin-top:28px;border:1px dashed var(–rule);border-radius:14px;padding:24px;background:var(–bg-2);
+display:none;
+}
+.result.show{display:block;animation:fadeup .3s ease}
+.result .rec-model{font-family:var(–serif);font-weight:900;font-size:34px;color:var(–accent);margin:4px 0 4px;letter-spacing:-.01em}
+.result .rec-alt{color:var(–muted);font-family:var(–mono);font-size:12px}
+.result .rec-why{margin-top:14px;color:#d9d1c2;line-height:1.65}
+
+/* –– Info callouts –– */
+.callout{
+border-left:3px solid var(–accent);background:rgba(255,91,34,.06);
+padding:14px 18px;border-radius:4px;margin:20px 0;color:#e6ddcc;line-height:1.6;font-size:14px;
+}
+.callout.warn{border-color:var(–warn);background:rgba(240,185,90,.06)}
+.callout.note{border-color:var(–accent-2);background:rgba(233,210,122,.05)}
+.callout b{color:var(–paper)}
+
+/* –– Footer –– */
+footer{border-top:1px solid var(–rule);margin-top:40px;padding:28px 0;color:var(–muted);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+footer a{color:var(–accent-2);text-decoration:none;border-bottom:1px dotted var(–accent-2)}
+
+/* –– Mobile tweaks –– */
+@media (max-width:700px){
+.hero{padding:48px 0 24px}
+.hero h1{font-size:52px}
+.tl::before{left:14px}
+.tl-item{padding-left:44px}
+.tl-item::before{left:8px}
+nav.tabs{width:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab-btn{white-space:nowrap}
+}
+</style>
+
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <div class="brand">
+      <div class="brand-mark">C</div>
+      <div>Claude Atlas <span style="color:var(--muted);font-weight:400;font-family:var(--mono);font-size:12px;letter-spacing:.1em">/ v1 → 4.7</span></div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab-btn active" data-tab="overview" role="tab">Overview</button>
+      <button class="tab-btn" data-tab="timeline" role="tab">Timeline</button>
+      <button class="tab-btn" data-tab="compare" role="tab">Compare</button>
+      <button class="tab-btn" data-tab="decide" role="tab">Decision Helper</button>
+      <button class="tab-btn" data-tab="rag" role="tab">RAG &amp; Agents</button>
+      <button class="tab-btn" data-tab="deploy" role="tab">Deployment</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ===================== OVERVIEW ===================== -->
+
+<section class="panel active" id="overview" role="tabpanel">
+  <div class="hero">
+    <div class="eyebrow">A practitioner's guide · Updated April 2026</div>
+    <h1>Every Claude,<br/>from <span class="accent">v1</span> to Opus <span class="accent">4.7</span>.</h1>
+    <p class="lede">
+      A working reference for engineers and architects: model specs, capability deltas, pricing,
+      and the deployment trade-offs that actually matter — from the first Claude released in March 2023
+      through Claude Opus 4.7, released April 16, 2026. Built to help you pick the right model for
+      chat, RAG, agents, and production.
+    </p>
+    <div class="hero-meta">
+      <span>Models tracked <b>17+</b></span>
+      <span>Tiers <b>Opus · Sonnet · Haiku</b></span>
+      <span>Latest <b>Opus 4.7</b> · 1M ctx</span>
+      <span>Sources <b>Anthropic API docs</b></span>
+    </div>
+  </div>
+
+  <h2 class="section-h">The three tiers, in one sentence each.</h2>
+  <p class="section-sub">Since Claude 3 (March 2024), every Claude generation has been released as a family with the same naming pattern.</p>
+
+  <div class="grid grid-3">
+    <div class="card">
+      <span class="k">Opus · heaviest</span>
+      <h3>For the hardest things.</h3>
+      <p>Deep reasoning, long-horizon agents, multi-hour coding sessions, complex research. Pay more, wait longer, get frontier intelligence. Opus 4.7 is the current flagship.</p>
+      <ul>
+        <li>Complex codebase refactors</li>
+        <li>Multi-step agentic workflows</li>
+        <li>Scientific / legal analysis</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="k">Sonnet · the workhorse</span>
+      <h3>The one you'll actually use.</h3>
+      <p>The sweet spot — near-Opus intelligence at ~1/5 the price. Sonnet 4.6 handles 90%+ of production workloads, including most RAG and agent use cases, without compromise.</p>
+      <ul>
+        <li>Production RAG pipelines</li>
+        <li>Daily coding assistance</li>
+        <li>High-volume chat backends</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="k">Haiku · fastest</span>
+      <h3>For scale and latency.</h3>
+      <p>Sub-second responses at the lowest cost per token. Haiku 4.5 delivers near-frontier intelligence for classification, extraction, routing, and real-time voice/UX loops.</p>
+      <ul>
+        <li>Classification &amp; routing</li>
+        <li>Streaming voice agents</li>
+        <li>High-QPS lightweight tasks</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout note" style="margin-top:36px">
+    <b>How to read this site.</b> The <b>Timeline</b> walks the evolution chronologically.
+    <b>Compare</b> is the sortable/filterable spec table. <b>Decision Helper</b> narrows you to
+    one model by use case. <b>RAG &amp; Agents</b> and <b>Deployment</b> cover what changes once
+    the prototype hits production.
+  </div>
+</section>
+
+<!-- ===================== TIMELINE ===================== -->
+
+<section class="panel" id="timeline" role="tabpanel">
+  <h2 class="section-h">Seventeen models in three years.</h2>
+  <p class="section-sub">Anthropic has shipped roughly one major upgrade every two to three months since 2023. Here's how the family got to where it is.</p>
+
+  <div class="tl" id="tl-list"></div>
+</section>
+
+<!-- ===================== COMPARE ===================== -->
+
+<section class="panel" id="compare" role="tabpanel">
+  <h2 class="section-h">The full comparison matrix.</h2>
+  <p class="section-sub">Sort by any column. Filter by tier, status, or feature. Specs for current models come from Anthropic's official documentation; legacy model specs are from archival sources and may be incomplete.</p>
+
+  <div class="filters">
+    <label>Status</label>
+    <span class="chip on" data-filter="status" data-val="all">All</span>
+    <span class="chip" data-filter="status" data-val="Active">Active</span>
+    <span class="chip" data-filter="status" data-val="Deprecated">Deprecated</span>
+    <span class="chip" data-filter="status" data-val="Retired">Retired</span>
+
+```
+<label style="margin-left:12px">Tier</label>
+<select id="f-tier">
+  <option value="all">All tiers</option>
+  <option value="Opus">Opus</option>
+  <option value="Sonnet">Sonnet</option>
+  <option value="Haiku">Haiku</option>
+  <option value="Legacy">Legacy (pre-family)</option>
+</select>
+
+<label>Feature</label>
+<select id="f-feat">
+  <option value="all">Any</option>
+  <option value="vision">Vision</option>
+  <option value="thinking">Extended / adaptive thinking</option>
+  <option value="tools">Tool use</option>
+  <option value="1m">1M context</option>
+</select>
+
+<input type="text" id="f-search" placeholder="Search name or API id…" aria-label="Search models" />
+<span class="spacer"></span>
+<span class="count" id="row-count"></span>
+```
+
+  </div>
+
+  <div class="tblwrap">
+    <table class="compare" id="compareTable" aria-label="Claude models comparison">
+      <thead>
+        <tr>
+          <th class="sortable" data-sort="name">Model <span class="sort">↕</span></th>
+          <th class="sortable" data-sort="released">Released <span class="sort">↕</span></th>
+          <th>Status</th>
+          <th class="sortable" data-sort="ctx">Context <span class="sort">↕</span></th>
+          <th>Max Output</th>
+          <th class="sortable" data-sort="in">$/M in <span class="sort">↕</span></th>
+          <th class="sortable" data-sort="out">$/M out <span class="sort">↕</span></th>
+          <th>Vision</th>
+          <th>Thinking</th>
+          <th>Tools</th>
+        </tr>
+      </thead>
+      <tbody id="compareBody"></tbody>
+    </table>
+  </div>
+
+  <div class="callout" style="margin-top:22px">
+    <b>Pricing caveat.</b> Prices shown are the standard per-million-token list rates for text. Batch API is typically 50% off. Prompt caching can reduce input costs by up to 90% on cache hits. Vision input, extended thinking tokens, and long-context tiers may carry separate rates on some platforms — always verify on Anthropic's pricing page before scaling.
+  </div>
+</section>
+
+<!-- ===================== DECISION HELPER ===================== -->
+
+<section class="panel" id="decide" role="tabpanel">
+  <h2 class="section-h">Which Claude should you use?</h2>
+  <p class="section-sub">Answer four questions. We'll recommend a primary model and a cheaper fallback, with reasoning. This is a heuristic — always validate on your own evals.</p>
+
+  <div class="wizard" id="wiz">
+    <div class="q" data-q="task">
+      <span class="q-label">① What's the core task?</span>
+      <div class="q-opts">
+        <div class="q-opt" data-v="chat">General chat / Q&amp;A</div>
+        <div class="q-opt" data-v="rag">RAG / document Q&amp;A</div>
+        <div class="q-opt" data-v="code">Coding (assistant or agent)</div>
+        <div class="q-opt" data-v="agent">Multi-step autonomous agent</div>
+        <div class="q-opt" data-v="classify">Classification / extraction / routing</div>
+        <div class="q-opt" data-v="vision">Vision / document understanding</div>
+        <div class="q-opt" data-v="creative">Long-form writing / reasoning</div>
+      </div>
+    </div>
+
+```
+<div class="q" data-q="scale">
+  <span class="q-label">② What's the scale?</span>
+  <div class="q-opts">
+    <div class="q-opt" data-v="low">Low volume / internal tool</div>
+    <div class="q-opt" data-v="mid">Production app, moderate QPS</div>
+    <div class="q-opt" data-v="high">High QPS / cost-sensitive</div>
+  </div>
+</div>
+
+<div class="q" data-q="latency">
+  <span class="q-label">③ Latency tolerance?</span>
+  <div class="q-opts">
+    <div class="q-opt" data-v="realtime">Sub-second (voice / interactive UI)</div>
+    <div class="q-opt" data-v="normal">A few seconds is fine</div>
+    <div class="q-opt" data-v="slow">Minutes OK (batch / deep work)</div>
+  </div>
+</div>
+
+<div class="q" data-q="ctx">
+  <span class="q-label">④ Typical input size?</span>
+  <div class="q-opts">
+    <div class="q-opt" data-v="small">Under 20k tokens</div>
+    <div class="q-opt" data-v="med">20k–200k tokens</div>
+    <div class="q-opt" data-v="huge">200k–1M tokens (long docs, codebases)</div>
+  </div>
+</div>
+
+<div class="result" id="result">
+  <div style="font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Recommended</div>
+  <div class="rec-model" id="rec-primary">—</div>
+  <div class="rec-alt" id="rec-alt">—</div>
+  <div class="rec-why" id="rec-why">—</div>
+</div>
+```
+
+  </div>
+</section>
+
+<!-- ===================== RAG & AGENTS ===================== -->
+
+<section class="panel" id="rag" role="tabpanel">
+  <h2 class="section-h">Building RAG &amp; agents with Claude.</h2>
+  <p class="section-sub">Capability notes that actually affect architecture choices — and the patterns that hold up in production.</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="k">RAG capability by model</span>
+      <h3>What the context window buys you.</h3>
+      <p>All Claude 3+ models handle RAG well, but the right model depends on corpus size and retrieval quality.</p>
+      <ul>
+        <li><b>Haiku 4.5 · 200k</b> — cheap retrieval-heavy flows; fine for short contexts, classification, and citation scoring.</li>
+        <li><b>Sonnet 4.6 · 1M</b> — the default production RAG choice. Long-enough context to skip aggressive chunking for many corpora.</li>
+        <li><b>Opus 4.7 · 1M</b> — when synthesis across many documents matters more than cost, or when the agent must reason before retrieving again.</li>
+      </ul>
+    </div>
+
+```
+<div class="card">
+  <span class="k">Long context ≠ no retrieval</span>
+  <h3>A 1M window doesn't replace a vector store.</h3>
+  <p>Even with 1M tokens, feeding everything every turn is expensive, slower, and hurts quality through lost-in-the-middle effects. Use long context to <i>reduce chunking pressure</i>, not eliminate retrieval.</p>
+  <ul>
+    <li>Chunk at semantic boundaries; embed; retrieve top-k.</li>
+    <li>Use <b>prompt caching</b> for stable system prompts + knowledge bases — up to 90% input cost reduction on cache hits.</li>
+    <li>Reserve long context for the retrieved slice plus scratchpad, not the whole corpus.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <span class="k">Tool use / function calling</span>
+  <h3>Native since Claude 3.</h3>
+  <p>All current Claude models support structured tool use via the Messages API. Claude 4.x added parallel tool calls and materially better tool-selection accuracy.</p>
+  <ul>
+    <li>Define tools as JSON schemas; the model emits <code>tool_use</code> blocks.</li>
+    <li>Return <code>tool_result</code> blocks on the next turn — the loop is yours to build.</li>
+    <li>For Anthropic-hosted tools, the <b>Model Context Protocol (MCP)</b> is the open standard.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <span class="k">Extended &amp; adaptive thinking</span>
+  <h3>Let the model reason before answering.</h3>
+  <p>Introduced in Claude 3.7 Sonnet. Haiku 4.5 and Sonnet 4.6 support extended thinking with a budget. Opus 4.7 uses <b>adaptive thinking</b> only — the model decides how much to think, tuned via the <code>effort</code> parameter.</p>
+  <ul>
+    <li>Big wins on math, code, and multi-step planning.</li>
+    <li>Thinking tokens are billed as output — budget accordingly.</li>
+    <li>On Opus 4.7, temperature/top_p are locked to defaults — use prompting for determinism.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <span class="k">Agent loops</span>
+  <h3>What changed in 4.x.</h3>
+  <p>Claude 4 was the generation where agentic coding and computer-use loops became production-viable. Opus 4.7 adds <b>task budgets</b> — the model sees a running token countdown and self-moderates work to finish gracefully.</p>
+  <ul>
+    <li>Plan → call tool → observe → revise. Cap steps explicitly.</li>
+    <li>Use file-system memory (a scratchpad directory) for long-horizon runs.</li>
+    <li>For multi-agent patterns: subagents spawn fewer by default on 4.7 — prompt explicitly if you need them.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <span class="k">Vision for RAG</span>
+  <h3>PDFs, slides, and screenshots.</h3>
+  <p>All current Claude models accept images. Opus 4.7 bumped max image resolution to 2576px (3.75MP) and improved low-level perception — a real unlock for document OCR-style work, chart reading, and computer-use agents.</p>
+  <ul>
+    <li>Send PDF pages as images when layout matters (forms, diagrams).</li>
+    <li>Prefer native PDF input when available — cheaper than re-rasterizing.</li>
+    <li>Downsample images before sending if fidelity isn't needed; high-res costs more tokens.</li>
+  </ul>
+</div>
+```
+
+  </div>
+
+  <div class="callout warn" style="margin-top:22px">
+    <b>One RAG gotcha.</b> Claude's reliable knowledge cutoff (the date through which training data is most dense) varies by model. Always ground time-sensitive answers in retrieved documents rather than model memory, and expose retrieved source citations in the final response — it dramatically reduces hallucination complaints.
+  </div>
+</section>
+
+<!-- ===================== DEPLOYMENT ===================== -->
+
+<section class="panel" id="deploy" role="tabpanel">
+  <h2 class="section-h">Deployment — what breaks at scale.</h2>
+  <p class="section-sub">The things that don't show up in the "hello world" tutorial but always show up in the post-launch retro.</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="k">Where to host</span>
+      <h3>Four first-party routes.</h3>
+      <ul>
+        <li><b>Anthropic API</b> — fastest access to newest models; simplest integration.</li>
+        <li><b>Amazon Bedrock</b> — for AWS-native stacks; regional &amp; global endpoints; stays inside your VPC.</li>
+        <li><b>Google Vertex AI</b> — GCP-native; regional, multi-region, and global endpoints.</li>
+        <li><b>Microsoft Foundry</b> — newer route for Azure customers.</li>
+      </ul>
+      <p style="margin-top:10px">Model IDs differ across platforms — Anthropic's <code>claude-opus-4-7</code> is <code>anthropic.claude-opus-4-7</code> on Bedrock. Plan for an abstraction.</p>
+    </div>
+
+```
+<div class="card">
+  <span class="k">Rate limits &amp; capacity</span>
+  <h3>Throughput is not free.</h3>
+  <ul>
+    <li>Rate limits scale with usage tier — budget for warm-up when launching.</li>
+    <li><b>Priority Tier</b> (Opus/Sonnet/Haiku) gives committed throughput if you need SLAs.</li>
+    <li><b>Batch API</b> — ~50% off list price, async 24h window. Ideal for evals, offline enrichment, bulk classification.</li>
+    <li>On Bedrock/Vertex, regional availability for the newest models lags the Anthropic API by weeks.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <span class="k">Cost optimization</span>
+  <h3>The levers, in order.</h3>
+  <ul>
+    <li><b>Prompt caching</b> — cache stable system prompts, tools, and document context. Often 70–90% input cost reduction.</li>
+    <li><b>Right-size the model</b> — demote from Opus → Sonnet → Haiku with evals at each step.</li>
+    <li><b>Bound max_tokens</b> — Claude's default is verbose; cap it.</li>
+    <li><b>Effort / task_budget (4.7)</b> — let the model self-moderate reasoning spend.</li>
+    <li><b>Batch API</b> for anything not user-facing.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <span class="k">Observability</span>
+  <h3>Log what you'll need to debug at 3am.</h3>
+  <ul>
+    <li>Full request + response (redacted for PII), token counts, model+version ID, latency.</li>
+    <li>Tool-use traces: which tool, args, result, retries.</li>
+    <li>Cache hit rates if using prompt caching.</li>
+    <li>Refusal/filter events — fire-hose these to a review queue.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <span class="k">Security &amp; compliance</span>
+  <h3>Treat the model like any other external service.</h3>
+  <ul>
+    <li><b>Never</b> send secrets, PII, or customer data without a reviewed DPA. Anthropic offers Zero Data Retention for enterprise.</li>
+    <li>On Bedrock/Vertex, data stays within your cloud boundary — preferred for regulated industries (HIPAA, PCI, India DPDP).</li>
+    <li>Validate and sandbox all tool execution — the model <i>will</i> occasionally call tools you didn't expect.</li>
+    <li>Guard against prompt injection in retrieved documents: treat retrieved text as untrusted input.</li>
+    <li>Rate-limit per-user at your gateway; LLM APIs are a great DDoS amplifier if you don't.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <span class="k">Model lifecycle</span>
+  <h3>Your model <i>will</i> be deprecated.</h3>
+  <p>Anthropic gives ≥60 days notice before retirement. Plan for migrations from day one.</p>
+  <ul>
+    <li>Pin to dated snapshots (e.g. <code>claude-haiku-4-5-20251001</code>) — aliases float and can change behavior silently.</li>
+    <li>Keep a golden eval set. Re-run it on every candidate model before migrating.</li>
+    <li>Watch tokenizer changes — Opus 4.7 ships a new tokenizer that can use up to 35% more tokens on the same text.</li>
+    <li>Audit usage via the Console → Usage export to find stragglers before retirement day.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <span class="k">Agentic deployments</span>
+  <h3>Guardrails that aren't optional.</h3>
+  <ul>
+    <li><b>Step caps</b> on every loop — always. Runaway agents are expensive.</li>
+    <li><b>Action allow-lists</b> — enumerate every tool; deny by default.</li>
+    <li><b>Human-in-the-loop</b> for destructive actions (delete, email, payment).</li>
+    <li><b>Per-run budget</b> — both tokens ($) and wall-clock.</li>
+    <li><b>Idempotency keys</b> on external side-effects so retries don't double-fire.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <span class="k">Regional considerations</span>
+  <h3>Where the data lives matters.</h3>
+  <ul>
+    <li><b>India / APAC:</b> use Bedrock/Vertex regional endpoints for residency; factor in cross-region latency if the model isn't yet local.</li>
+    <li><b>EU:</b> Vertex EU multi-region or Bedrock EU regions for GDPR residency.</li>
+    <li><b>US gov / regulated:</b> Bedrock with VPC endpoints; verify FedRAMP status per model.</li>
+    <li>Global endpoints optimize availability but cross borders — check your compliance posture.</li>
+  </ul>
+</div>
+```
+
+  </div>
+
+  <div class="callout note" style="margin-top:22px">
+    <b>A good starter stack.</b> Sonnet 4.6 for the main reasoning path · Haiku 4.5 for classification/routing · prompt caching on everything stable · Batch API for evals and offline jobs · pinned dated snapshots · a golden eval set you run before every model bump. Add Opus 4.7 only where Sonnet's evals miss.
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      Built as a living reference · Specs verified against Anthropic's API documentation · Last verified April 18, 2026
+    </div>
+    <div>
+      Primary sources: <a href="https://platform.claude.com/docs/en/about-claude/models/overview" target="_blank" rel="noopener noreferrer">platform.claude.com/docs</a> · <a href="https://en.wikipedia.org/wiki/Claude_(language_model)" target="_blank" rel="noopener noreferrer">Wikipedia</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* -----------------------------------------------------------
+   Claude model dataset
+   Sources: Anthropic API docs (platform.claude.com), Wikipedia,
+   and archival release pages. Legacy pricing shown per historical
+   sources; current model pricing from Anthropic's models overview.
+   All data is static; no external APIs are called at runtime.
+   ----------------------------------------------------------- */
+const MODELS = [
+  // ---- Flagship / current ----
+  { name:"Claude Opus 4.7", apiId:"claude-opus-4-7", tier:"Opus", status:"Active",
+    released:"2026-04-16", ctx:1000000, out:128000, priceIn:5, priceOut:25,
+    vision:true, thinking:"Adaptive", tools:true, kCutoff:"Jan 2026",
+    note:"Current flagship. Step-change in agentic coding over 4.6. Adaptive-thinking only, new tokenizer, high-res images up to 2576px, task budgets (beta)." },
+  { name:"Claude Sonnet 4.6", apiId:"claude-sonnet-4-6", tier:"Sonnet", status:"Active",
+    released:"2026-02-17", ctx:1000000, out:64000, priceIn:3, priceOut:15,
+    vision:true, thinking:"Extended + Adaptive", tools:true, kCutoff:"Aug 2025",
+    note:"The production workhorse. Preferred over previous-gen Opus on coding by a majority of developers. 1M context GA." },
+  { name:"Claude Haiku 4.5", apiId:"claude-haiku-4-5-20251001", tier:"Haiku", status:"Active",
+    released:"2025-10-15", ctx:200000, out:64000, priceIn:1, priceOut:5,
+    vision:true, thinking:"Extended", tools:true, kCutoff:"Feb 2025",
+    note:"Fastest current model with near-frontier intelligence. Replaces Haiku 3 and 3.5." },
+  { name:"Claude Opus 4.6", apiId:"claude-opus-4-6", tier:"Opus", status:"Active",
+    released:"2026-02-05", ctx:1000000, out:64000, priceIn:5, priceOut:25,
+    vision:true, thinking:"Extended + Adaptive", tools:true, kCutoff:"Mar 2025",
+    note:"Introduced 1M context and agent teams. Still active alongside 4.7." },
+  { name:"Claude Opus 4.5", apiId:"claude-opus-4-5-20251101", tier:"Opus", status:"Active",
+    released:"2025-11-24", ctx:200000, out:64000, priceIn:5, priceOut:25,
+    vision:true, thinking:"Extended", tools:true, kCutoff:"Jul 2025",
+    note:"Efficiency-focused Opus with 67% price cut vs 4.1. Still available; many workloads have moved to 4.6/4.7." },
+  { name:"Claude Sonnet 4.5", apiId:"claude-sonnet-4-5-20250929", tier:"Sonnet", status:"Active",
+    released:"2025-09-29", ctx:200000, out:64000, priceIn:3, priceOut:15,
+    vision:true, thinking:"Extended", tools:true, kCutoff:"Jul 2025",
+    note:"Strong coding Sonnet, superseded for most use cases by 4.6." },
+
+  // ---- Recently deprecated ----
+  { name:"Claude Opus 4.1", apiId:"claude-opus-4-1-20250805", tier:"Opus", status:"Active",
+    released:"2025-08-05", ctx:200000, out:32000, priceIn:15, priceOut:75,
+    vision:true, thinking:"Extended", tools:true, kCutoff:"Mar 2025",
+    note:"Original-pricing Opus. Technically still active but superseded." },
+  { name:"Claude Opus 4", apiId:"claude-opus-4-20250514", tier:"Opus", status:"Deprecated",
+    released:"2025-05-22", ctx:200000, out:32000, priceIn:15, priceOut:75,
+    vision:true, thinking:"Extended", tools:true, kCutoff:"Mar 2025",
+    note:"First Claude 4-family Opus. Retires June 15, 2026 — migrate to Opus 4.7." },
+  { name:"Claude Sonnet 4", apiId:"claude-sonnet-4-20250514", tier:"Sonnet", status:"Deprecated",
+    released:"2025-05-22", ctx:200000, out:64000, priceIn:3, priceOut:15,
+    vision:true, thinking:"Extended", tools:true, kCutoff:"Mar 2025",
+    note:"First Claude 4-family Sonnet. Retires June 15, 2026 — migrate to Sonnet 4.6." },
+
+  // ---- 3.x series ----
+  { name:"Claude Sonnet 3.7", apiId:"claude-3-7-sonnet-20250219", tier:"Sonnet", status:"Retired",
+    released:"2025-02-19", ctx:200000, out:64000, priceIn:3, priceOut:15,
+    vision:true, thinking:"Extended (first)", tools:true, kCutoff:"Nov 2024",
+    note:"First Claude with 'extended thinking' mode. Retired Feb 19, 2026." },
+  { name:"Claude Haiku 3.5", apiId:"claude-3-5-haiku-20241022", tier:"Haiku", status:"Retired",
+    released:"2024-10-22", ctx:200000, out:8192, priceIn:0.8, priceOut:4,
+    vision:true, thinking:"No", tools:true, kCutoff:"Jul 2024",
+    note:"Retired Feb 19, 2026." },
+  { name:"Claude Sonnet 3.5 (v2)", apiId:"claude-3-5-sonnet-20241022", tier:"Sonnet", status:"Retired",
+    released:"2024-10-22", ctx:200000, out:8192, priceIn:3, priceOut:15,
+    vision:true, thinking:"No", tools:true, kCutoff:"Apr 2024",
+    note:"The famous 'new Sonnet 3.5' that introduced computer use. Retired Oct 28, 2025." },
+  { name:"Claude Sonnet 3.5", apiId:"claude-3-5-sonnet-20240620", tier:"Sonnet", status:"Retired",
+    released:"2024-06-20", ctx:200000, out:8192, priceIn:3, priceOut:15,
+    vision:true, thinking:"No", tools:true, kCutoff:"Apr 2024",
+    note:"Outperformed Opus 3 at a fraction of the cost — a milestone. Retired Oct 28, 2025." },
+  { name:"Claude Opus 3", apiId:"claude-3-opus-20240229", tier:"Opus", status:"Retired",
+    released:"2024-02-29", ctx:200000, out:4096, priceIn:15, priceOut:75,
+    vision:true, thinking:"No", tools:true, kCutoff:"Aug 2023",
+    note:"First Claude to beat GPT-4 on several benchmarks. Retired Jan 5, 2026." },
+  { name:"Claude Sonnet 3", apiId:"claude-3-sonnet-20240229", tier:"Sonnet", status:"Retired",
+    released:"2024-02-29", ctx:200000, out:4096, priceIn:3, priceOut:15,
+    vision:true, thinking:"No", tools:true, kCutoff:"Aug 2023",
+    note:"Launch-family Sonnet. Retired Jul 21, 2025." },
+  { name:"Claude Haiku 3", apiId:"claude-3-haiku-20240307", tier:"Haiku", status:"Deprecated",
+    released:"2024-03-07", ctx:200000, out:4096, priceIn:0.25, priceOut:1.25,
+    vision:true, thinking:"No", tools:true, kCutoff:"Aug 2023",
+    note:"The speed/cost legend — 10k-token paper in under 3s. Retires Apr 20, 2026." },
+
+  // ---- Pre-family ----
+  { name:"Claude 2.1", apiId:"claude-2.1", tier:"Legacy", status:"Retired",
+    released:"2023-11-21", ctx:200000, out:4096, priceIn:8, priceOut:24,
+    vision:false, thinking:"No", tools:false, kCutoff:"Early 2023",
+    note:"First Claude to reach 200k context. Retired Jul 21, 2025." },
+  { name:"Claude 2.0", apiId:"claude-2.0", tier:"Legacy", status:"Retired",
+    released:"2023-07-11", ctx:100000, out:4096, priceIn:8, priceOut:24,
+    vision:false, thinking:"No", tools:false, kCutoff:"Early 2023",
+    note:"Retired Jul 21, 2025." },
+  { name:"Claude Instant 1.2", apiId:"claude-instant-1.2", tier:"Legacy", status:"Retired",
+    released:"2023-08-09", ctx:100000, out:4096, priceIn:1.63, priceOut:5.51,
+    vision:false, thinking:"No", tools:false, kCutoff:"Early 2023",
+    note:"The original 'fast, cheap' Claude. Retired Nov 6, 2024." },
+  { name:"Claude 1.x", apiId:"claude-1.3", tier:"Legacy", status:"Retired",
+    released:"2023-03-14", ctx:9000, out:4096, priceIn:8, priceOut:24,
+    vision:false, thinking:"No", tools:false, kCutoff:"Early 2023",
+    note:"The original Claude. Retired Nov 6, 2024." },
+];
+
+/* ------ Timeline content ------ */
+const TIMELINE = [
+  { date:"March 14, 2023", title:"Claude 1 — the original release", tags:["Anthropic","Debut"],
+    body:"Anthropic's first public Claude model launches with a ~9K token context window, focusing on helpful, harmless, honest responses trained via Constitutional AI." },
+  { date:"August 9, 2023", title:"Claude Instant 1.2", tags:["Speed"],
+    body:"The first 'fast & cheap' Claude, establishing the pattern of serving multiple price/performance points that would eventually become the Haiku/Sonnet/Opus family." },
+  { date:"July 11, 2023", title:"Claude 2", tags:["100k context"],
+    body:"100K token context window — for a long time the largest of any commercial LLM. Enabled feeding entire books or codebases into a single prompt." },
+  { date:"November 21, 2023", title:"Claude 2.1 — 200K context", tags:["200k context"],
+    body:"Doubled context to 200K tokens, improved factual accuracy, introduced tool use in beta, and added system prompts." },
+  { date:"March 4, 2024", title:"Claude 3 family launches", tags:["Haiku","Sonnet","Opus","Vision"],
+    body:"The defining release: three tiers (Haiku, Sonnet, Opus) at three price points, vision capabilities across all models, 200K context, and benchmark leadership — Opus 3 was the first Claude to outperform GPT-4 on several academic tests." },
+  { date:"June 20, 2024", title:"Claude 3.5 Sonnet", tags:["Breakthrough"],
+    body:"A milestone: outperformed Opus 3 at a fraction of the cost and latency. Established Sonnet as the default production model." },
+  { date:"October 22, 2024", title:"Claude 3.5 Sonnet (v2) & Haiku 3.5", tags:["Computer Use"],
+    body:"The 'new Sonnet 3.5' introduced computer use — the model could operate a GUI via screenshots. Haiku 3.5 brought comparable intelligence to the fast tier." },
+  { date:"February 19, 2025", title:"Claude 3.7 Sonnet — extended thinking", tags:["Reasoning"],
+    body:"First Claude with hybrid reasoning. The model could 'think' before responding, trading time and tokens for much better performance on math, code, and multi-step tasks." },
+  { date:"May 22, 2025", title:"Claude 4 family — Opus 4 & Sonnet 4", tags:["Agents","Coding"],
+    body:"The generation where agentic coding became production-viable. Long-horizon tool use, parallel tool calls, substantially better at multi-step autonomous work." },
+  { date:"August 5, 2025", title:"Claude Opus 4.1", tags:["Iteration"],
+    body:"Incremental Opus upgrade focused on coding and agentic benchmarks." },
+  { date:"September 29, 2025", title:"Claude Sonnet 4.5", tags:["Sonnet","Coding"],
+    body:"Strong coding-focused Sonnet update." },
+  { date:"October 15, 2025", title:"Claude Haiku 4.5", tags:["Fast tier"],
+    body:"Near-frontier intelligence at Haiku speeds and prices. Still the current fast tier." },
+  { date:"November 24, 2025", title:"Claude Opus 4.5 — the price cut", tags:["Pricing"],
+    body:"67% price reduction vs Opus 4.1 and dramatically lower output-token usage. Made premium intelligence affordable for daily driver use." },
+  { date:"February 5, 2026", title:"Claude Opus 4.6 — 1M context & agent teams", tags:["1M context","Agents"],
+    body:"First Claude with 1M token context at GA. Introduced native multi-agent collaboration ('agent teams') and, later, Claude in PowerPoint." },
+  { date:"February 17, 2026", title:"Claude Sonnet 4.6", tags:["Workhorse"],
+    body:"Sonnet matches the previous generation's Opus in coding evals — a first. 1M context, computer use at ~94% on insurance benchmarks. The current default for production." },
+  { date:"April 16, 2026", title:"Claude Opus 4.7 — the current flagship", tags:["Latest","Adaptive","Vision"],
+    body:"Step-change in agentic coding. High-resolution image support (2576px / 3.75MP), adaptive thinking only, new tokenizer, task budgets (beta), fewer-tools-more-reasoning behavior. Most capable publicly available Claude." },
+];
+
+/* ============================================================
+   UI — everything below is vanilla JS, no dependencies.
+   Inputs are treated as untrusted: we use textContent / setAttribute,
+   never innerHTML with user-derived data. All data is static anyway.
+   ============================================================ */
+
+// ---- Tabs ----
+const tabBtns = document.querySelectorAll(".tab-btn");
+const panels = document.querySelectorAll("section.panel");
+tabBtns.forEach(b=>{
+  b.addEventListener("click",()=>{
+    const id = b.dataset.tab;
+    tabBtns.forEach(x=>x.classList.toggle("active", x===b));
+    panels.forEach(p=>p.classList.toggle("active", p.id===id));
+    // Scroll to top of content on tab change
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
+});
+
+// ---- Timeline render ----
+(function renderTimeline(){
+  const root = document.getElementById("tl-list");
+  const frag = document.createDocumentFragment();
+  TIMELINE.forEach((item, i)=>{
+    const div = document.createElement("div");
+    div.className = "tl-item" + (i > 4 && i < 10 ? "" : "");
+    const d = document.createElement("div"); d.className="tl-date"; d.textContent = item.date;
+    const t = document.createElement("div"); t.className="tl-title"; t.textContent = item.title;
+    const b = document.createElement("div"); b.className="tl-body";
+    b.textContent = item.body;
+    const tagsWrap = document.createElement("div");
+    tagsWrap.style.marginTop = "10px";
+    (item.tags||[]).forEach(tag=>{
+      const s = document.createElement("span"); s.className="tl-tag"; s.textContent = tag;
+      tagsWrap.appendChild(s);
+    });
+    div.appendChild(d); div.appendChild(t); div.appendChild(b); div.appendChild(tagsWrap);
+    frag.appendChild(div);
+  });
+  root.appendChild(frag);
+})();
+
+// ---- Compare table ----
+const body = document.getElementById("compareBody");
+const rowCount = document.getElementById("row-count");
+let currentSort = { key:"released", dir:-1 }; // newest first by default
+let currentFilters = { status:"all", tier:"all", feat:"all", q:"" };
+
+function fmtCtx(n){
+  if(n>=1_000_000) return (n/1_000_000)+"M";
+  if(n>=1000) return (n/1000)+"k";
+  return String(n);
+}
+function fmtPrice(n){ return n==null ? "—" : "$"+n; }
+
+function statusBadge(s){
+  const el = document.createElement("span");
+  el.className = "badge " + s.toLowerCase();
+  el.textContent = s;
+  return el;
+}
+
+function renderRows(){
+  body.textContent = ""; // clear safely
+  const frag = document.createDocumentFragment();
+  const filtered = MODELS.filter(m=>{
+    if(currentFilters.status!=="all" && m.status!==currentFilters.status) return false;
+    if(currentFilters.tier!=="all" && m.tier!==currentFilters.tier) return false;
+    if(currentFilters.feat==="vision" && !m.vision) return false;
+    if(currentFilters.feat==="thinking" && (m.thinking==="No")) return false;
+    if(currentFilters.feat==="tools" && !m.tools) return false;
+    if(currentFilters.feat==="1m" && m.ctx < 1_000_000) return false;
+    if(currentFilters.q){
+      const q = currentFilters.q.toLowerCase();
+      if(!(m.name.toLowerCase().includes(q) || m.apiId.toLowerCase().includes(q))) return false;
+    }
+    return true;
+  });
+
+  filtered.sort((a,b)=>{
+    const k = currentSort.key;
+    let av, bv;
+    if(k==="name"){ av=a.name; bv=b.name; }
+    else if(k==="released"){ av=a.released; bv=b.released; }
+    else if(k==="ctx"){ av=a.ctx; bv=b.ctx; }
+    else if(k==="in"){ av=a.priceIn; bv=b.priceIn; }
+    else if(k==="out"){ av=a.priceOut; bv=b.priceOut; }
+    if(av<bv) return -1*currentSort.dir;
+    if(av>bv) return 1*currentSort.dir;
+    return 0;
+  });
+
+  filtered.forEach(m=>{
+    const tr = document.createElement("tr");
+
+    const td1 = document.createElement("td"); td1.className="model-name";
+    const mainName = document.createElement("span"); mainName.textContent = m.name;
+    const sub = document.createElement("span"); sub.className="sub"; sub.textContent = m.apiId;
+    td1.appendChild(mainName); td1.appendChild(sub);
+    tr.appendChild(td1);
+
+    const td2 = document.createElement("td");
+    const dt = new Date(m.released);
+    td2.textContent = isNaN(dt) ? m.released : dt.toLocaleDateString("en-US",{year:"numeric",month:"short",day:"numeric"});
+    tr.appendChild(td2);
+
+    const td3 = document.createElement("td"); td3.appendChild(statusBadge(m.status));
+    const tierLabel = document.createElement("div");
+    tierLabel.className = "tier " + m.tier.toLowerCase();
+    tierLabel.textContent = m.tier;
+    tierLabel.style.marginTop = "6px";
+    td3.appendChild(tierLabel);
+    tr.appendChild(td3);
+
+    const td4 = document.createElement("td"); td4.textContent = fmtCtx(m.ctx); tr.appendChild(td4);
+    const td5 = document.createElement("td"); td5.textContent = fmtCtx(m.out); tr.appendChild(td5);
+    const td6 = document.createElement("td"); td6.textContent = fmtPrice(m.priceIn); tr.appendChild(td6);
+    const td7 = document.createElement("td"); td7.textContent = fmtPrice(m.priceOut); tr.appendChild(td7);
+    const td8 = document.createElement("td"); td8.textContent = m.vision ? "✓" : "—"; tr.appendChild(td8);
+    const td9 = document.createElement("td"); td9.textContent = m.thinking; tr.appendChild(td9);
+    const td10 = document.createElement("td"); td10.textContent = m.tools ? "✓" : "—"; tr.appendChild(td10);
+
+    // Click expands a note row
+    tr.style.cursor = "pointer";
+    tr.addEventListener("click", ()=>{
+      // toggle a sibling note row
+      const next = tr.nextSibling;
+      if(next && next.classList && next.classList.contains("note-row")){ next.remove(); return; }
+      const noteTr = document.createElement("tr");
+      noteTr.className = "note-row";
+      const noteTd = document.createElement("td");
+      noteTd.colSpan = 10;
+      noteTd.style.background = "rgba(233,210,122,.04)";
+      noteTd.style.padding = "14px 18px";
+      noteTd.style.borderBottom = "1px solid var(--rule)";
+      noteTd.style.fontSize = "13px";
+      noteTd.style.color = "#d9d1c2";
+      noteTd.style.lineHeight = "1.6";
+      const bold = document.createElement("b");
+      bold.textContent = "Notes: ";
+      bold.style.color = "var(--accent-2)";
+      bold.style.fontFamily = "var(--mono)";
+      bold.style.fontSize = "11px";
+      bold.style.letterSpacing = ".1em";
+      bold.style.textTransform = "uppercase";
+      bold.style.marginRight = "6px";
+      noteTd.appendChild(bold);
+      noteTd.appendChild(document.createTextNode(
+        m.note + "  •  Knowledge cutoff: " + (m.kCutoff||"—")
+      ));
+      noteTr.appendChild(noteTd);
+      tr.after(noteTr);
+    });
+
+    frag.appendChild(tr);
+  });
+
+  body.appendChild(frag);
+  rowCount.textContent = filtered.length + " model" + (filtered.length===1?"":"s");
+
+  // Update sort indicators
+  document.querySelectorAll("#compareTable thead th").forEach(th=>{
+    th.classList.toggle("sorted", th.dataset.sort === currentSort.key);
+    const arrow = th.querySelector(".sort");
+    if(arrow && th.dataset.sort === currentSort.key){
+      arrow.textContent = currentSort.dir===1 ? "↑" : "↓";
+    } else if(arrow){
+      arrow.textContent = "↕";
+    }
+  });
+}
+
+// Sort handlers
+document.querySelectorAll("#compareTable thead th.sortable").forEach(th=>{
+  th.addEventListener("click", ()=>{
+    const k = th.dataset.sort;
+    if(currentSort.key===k){ currentSort.dir *= -1; }
+    else { currentSort.key = k; currentSort.dir = k==="name" ? 1 : -1; }
+    renderRows();
+  });
+});
+
+// Filter handlers
+document.querySelectorAll('.chip[data-filter="status"]').forEach(c=>{
+  c.addEventListener("click", ()=>{
+    document.querySelectorAll('.chip[data-filter="status"]').forEach(x=>x.classList.remove("on"));
+    c.classList.add("on");
+    currentFilters.status = c.dataset.val;
+    renderRows();
+  });
+});
+document.getElementById("f-tier").addEventListener("change", e=>{
+  currentFilters.tier = e.target.value; renderRows();
+});
+document.getElementById("f-feat").addEventListener("change", e=>{
+  currentFilters.feat = e.target.value; renderRows();
+});
+document.getElementById("f-search").addEventListener("input", e=>{
+  // Basic input sanitization: clamp length to prevent runaway string ops
+  currentFilters.q = (e.target.value || "").slice(0, 100);
+  renderRows();
+});
+
+renderRows();
+
+// ---- Decision helper ----
+const wiz = document.getElementById("wiz");
+const answers = { task:null, scale:null, latency:null, ctx:null };
+wiz.querySelectorAll(".q-opt").forEach(opt=>{
+  opt.addEventListener("click", ()=>{
+    const q = opt.closest(".q").dataset.q;
+    opt.parentElement.querySelectorAll(".q-opt").forEach(o=>o.classList.remove("sel"));
+    opt.classList.add("sel");
+    answers[q] = opt.dataset.v;
+    maybeRecommend();
+  });
+});
+
+function maybeRecommend(){
+  if(!answers.task || !answers.scale || !answers.latency || !answers.ctx) return;
+  const rec = recommend(answers);
+  document.getElementById("rec-primary").textContent = rec.primary;
+  document.getElementById("rec-alt").textContent = "Cheaper fallback: " + rec.fallback;
+  document.getElementById("rec-why").textContent = rec.why;
+  document.getElementById("result").classList.add("show");
+}
+
+function recommend(a){
+  // Decision logic — deliberately simple and readable.
+  // 1M context forces Sonnet 4.6 or Opus 4.7.
+  if(a.ctx === "huge"){
+    if(a.task === "agent" || a.task === "code" && a.scale !== "high"){
+      return { primary:"Claude Opus 4.7",
+               fallback:"Claude Sonnet 4.6",
+               why:"You need 1M token context AND the task is agentic or deep-code. Opus 4.7 has the strongest long-horizon reasoning and agentic coding. Sonnet 4.6 also offers 1M context at ~5× lower cost — benchmark it first." };
+    }
+    return { primary:"Claude Sonnet 4.6",
+             fallback:"Claude Opus 4.7 (if quality lifts on evals)",
+             why:"Only Sonnet 4.6 and Opus 4.7 have 1M context. Sonnet is the default — same window, much better economics for RAG over large corpora." };
+  }
+
+  if(a.task === "classify" || a.latency === "realtime" || a.scale === "high"){
+    return { primary:"Claude Haiku 4.5",
+             fallback:"(none — already the cheap tier)",
+             why:"Classification, extraction, routing, and real-time UX loops are Haiku's sweet spot. 200k context, tool use, vision, and extended thinking if you need it — at $1 in / $5 out per million tokens." };
+  }
+
+  if(a.task === "agent"){
+    return { primary:"Claude Opus 4.7",
+             fallback:"Claude Sonnet 4.6",
+             why:"Agentic loops benefit most from Opus 4.7's reasoning depth, adaptive thinking, and new task-budget support. Sonnet 4.6 is ~80% as good at ~1/5 the cost — worth eval'ing first for cost-sensitive agents." };
+  }
+
+  if(a.task === "code"){
+    if(a.scale === "low"){
+      return { primary:"Claude Opus 4.7",
+               fallback:"Claude Sonnet 4.6",
+               why:"Low-volume coding (internal tools, architect work) is where Opus 4.7's step-change in agentic coding pays off. If cost matters, Sonnet 4.6 now beats previous-gen Opus on coding benchmarks." };
+    }
+    return { primary:"Claude Sonnet 4.6",
+             fallback:"Claude Haiku 4.5 (boilerplate only)",
+             why:"Sonnet 4.6 is the best cost-per-capability coding model and handles the vast majority of production dev-tool workloads. Promote to Opus 4.7 only for the hardest 10%." };
+  }
+
+  if(a.task === "rag"){
+    return { primary:"Claude Sonnet 4.6",
+             fallback:"Claude Haiku 4.5",
+             why:"Sonnet 4.6 is the standard production RAG choice — 1M context, strong synthesis, prompt caching friendly. Drop to Haiku 4.5 for retrieval-heavy, short-context flows where the LLM mostly extracts." };
+  }
+
+  if(a.task === "vision"){
+    if(a.scale === "low" || a.latency === "slow"){
+      return { primary:"Claude Opus 4.7",
+               fallback:"Claude Sonnet 4.6",
+               why:"Opus 4.7 is the first Claude with high-res image support (2576px) and improved low-level perception — the right call for document understanding, forms, and computer-use." };
+    }
+    return { primary:"Claude Sonnet 4.6",
+             fallback:"Claude Haiku 4.5",
+             why:"Sonnet handles most vision-at-scale workloads well. Haiku is fine for simple classification of images. Opus 4.7 only if precision really matters." };
+  }
+
+  if(a.task === "creative"){
+    return { primary:"Claude Opus 4.7",
+             fallback:"Claude Sonnet 4.6",
+             why:"Long-form writing, nuanced reasoning, and complex drafting are where Opus's extra capability shows. Sonnet 4.6 is a strong cheaper alternative with a similar voice." };
+  }
+
+  // General chat default
+  if(a.scale === "high"){
+    return { primary:"Claude Haiku 4.5",
+             fallback:"Claude Sonnet 4.6 (for tougher turns)",
+             why:"High-volume general chat at low cost and latency is Haiku territory. Add a router that escalates only complex turns to Sonnet 4.6." };
+  }
+  return { primary:"Claude Sonnet 4.6",
+           fallback:"Claude Haiku 4.5",
+           why:"For most general chat and Q&A use cases, Sonnet 4.6 is the best default. Fall back to Haiku 4.5 for high-QPS or cost-sensitive deployments." };
+}
+
+</script>
+
+</body>
+</html>
